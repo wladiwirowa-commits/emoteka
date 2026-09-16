@@ -1,20 +1,47 @@
 <!DOCTYPE html>
-<html lang="bg"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Емотека</title>
-<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
-</head>
-<body style="margin:0;background:#12110f;color:#f0ebe3;font-family:system-ui;display:grid;place-items:center;min-height:100dvh"><p id="s">Зареждане на Емотека…</p>
-<script src="p0.js"></script><script src="p1.js"></script><script src="p2.js"></script><script src="p3.js"></script>
-<script src="p4.js"></script><script src="p5.js"></script><script src="p6.js"></script><script src="p7.js"></script>
+<html lang="bg"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Емотека</title>
+<style>
+:root{--bg:#12110f;--surface:#1c1a17;--elevated:#24211d;--fg:#f0ebe3;--muted:#9c958c;--subtle:#6e6860;--border:rgba(240,235,227,.12);--joy:#c4a24a;--trust:#6f9a62;--fear:#3e7a52;--surprise:#5b9bb0;--sadness:#4a74a8;--disgust:#7b6b8c;--anger:#b45a48;--anticipation:#c4844a;--complex:#8a8378}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif}body{min-height:100dvh}
+h1,h2{font-family:Georgia,serif;font-weight:500;margin:0}header{border-bottom:1px solid var(--border);padding:24px 16px}.wrap{max-width:1100px;margin:0 auto}
+h1{font-size:clamp(1.8rem,5vw,2.8rem);margin-top:6px}.kicker{font:600 11px system-ui;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--muted);font-size:15px;margin:10px 0 0}.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px 0}
+input,select{height:42px;border:0;border-radius:10px;padding:0 12px;background:var(--elevated);color:var(--fg);font:16px system-ui;box-shadow:0 0 0 1px var(--border)}
+input{flex:1 1 200px}select{border-radius:999px;color:var(--muted)}.count{font:12px system-ui;color:var(--subtle);padding:8px 16px 0}
+.table-wrap{padding:8px 12px 24px;overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--subtle);padding:10px 8px;border-bottom:1px solid var(--border)}
+td{padding:10px 8px;border-bottom:1px solid var(--border)}tbody tr{cursor:pointer}tbody tr:hover,tbody tr.active{background:var(--elevated)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px}.en{font-style:italic;color:var(--muted)}
+.panel{position:fixed;right:0;top:0;bottom:0;width:min(380px,100%);background:var(--surface);box-shadow:0 0 0 1px var(--border);padding:20px;overflow:auto;z-index:5}
+.panel h2{font-size:1.8rem;margin-top:4px}.close{float:right;height:40px;width:40px;border:0;background:0;color:var(--muted);font-size:22px;cursor:pointer}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}.badge{font-size:12px;padding:5px 10px;border-radius:999px;background:var(--elevated);color:var(--muted)}
+.related{display:flex;flex-wrap:wrap;gap:6px}.related button{height:34px;border:0;border-radius:999px;padding:0 12px;background:var(--elevated);color:var(--fg);cursor:pointer}
+.empty{padding:40px 16px;text-align:center;color:var(--muted)}.note{font-size:12px;color:var(--subtle);padding:8px 16px 40px}
+@media(max-width:720px){.hide-sm{display:none}.panel{width:100%;height:85dvh;top:auto;border-radius:16px 16px 0 0}}
+</style></head><body>
+<header><div class="wrap"><div class="kicker">Атлас на чувствата</div><h1>Емотека</h1>
+<p class="lede">103 именувани емоции — търси, филтрирай, отвори описание.</p></div></header>
+<div class="wrap"><div class="toolbar">
+<input id="q" type="search" placeholder="Търси емоция…" aria-label="Търсене"/>
+<select id="family"><option value="">Всички семейства</option></select>
+<select id="intensity"><option value="">Всеки интензитет</option><option>Лека</option><option>Средна</option><option>Силна</option></select>
+</div><p class="count" id="count"></p>
+<div class="table-wrap"><table><thead><tr><th>Емоция</th><th>English</th><th>Семейство</th><th class="hide-sm">Интензитет</th><th class="hide-sm">Валентност</th></tr></thead>
+<tbody id="rows"></tbody></table><p class="empty" id="empty" hidden>Няма резултати.</p></div>
+<p class="note">Емотека</p></div><div class="panel" id="panel" hidden></div>
+<script src="d0.js"></script><script src="d1.js"></script><script src="d2.js"></script><script src="d3.js"></script><script src="d4.js"></script><script src="d5.js"></script><script src="d6.js"></script><script src="d7.js"></script>
 <script>
-(function(){
-try{
-const b64=(window.__p||[]).join("");
-if(!b64) throw new Error("Липсват данни (p0–p7)");
-const bin=atob(b64);
-const bytes=new Uint8Array(bin.length);
-for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-const html=pako.inflate(bytes,{to:"string",raw:true});
-document.open();document.write(html);document.close();
-}catch(e){document.getElementById("s").textContent="Грешка: "+e; console.error(e);}
-})();
+const DATA=JSON.parse((window.__j||[]).join(""));
+const C={joy:"var(--joy)",trust:"var(--trust)",fear:"var(--fear)",surprise:"var(--surprise)",sadness:"var(--sadness)",disgust:"var(--disgust)",anger:"var(--anger)",anticipation:"var(--anticipation)",complex:"var(--complex)"};
+const fam=document.getElementById("family"),q=document.getElementById("q"),inten=document.getElementById("intensity");
+[...new Set(DATA.map(e=>e.familyBg))].sort((a,b)=>a.localeCompare(b,"bg")).forEach(n=>{const o=document.createElement("option");o.textContent=n;fam.appendChild(o);});
+const rows=document.getElementById("rows"),empty=document.getElementById("empty"),count=document.getElementById("count"),panel=document.getElementById("panel");
+let sel=null;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&","<":"<",">":">",'"':""","'":"&#39;"}[c]));
+function list(){const t=q.value.trim().toLowerCase(),f=fam.value,i=inten.value;return DATA.filter(e=>(!f||e.familyBg===f)&&(!i||e.intensity===i)&&(!t||(e.nameBg+" "+e.nameEn+" "+e.familyBg+" "+e.description).toLowerCase().includes(t))).sort((a,b)=>a.nameBg.localeCompare(b.nameBg,"bg"));}
+function render(){const L=list();count.textContent=L.length+" / "+DATA.length;rows.replaceChildren();empty.hidden=L.length>0;for(const e of L){const tr=document.createElement("tr");if(sel===e.id)tr.className="active";tr.innerHTML=`<td><span class="dot" style="background:${C[e.family]}"></span>${esc(e.nameBg)}</td><td class="en">${esc(e.nameEn)}</td><td>${esc(e.familyBg)}</td><td class="hide-sm">${esc(e.intensity)}</td><td class="hide-sm">${esc(e.valence)}</td>`;tr.onclick=()=>open(e.id);rows.appendChild(tr);}}
+function open(id){const e=DATA.find(x=>x.id===id);if(!e)return;sel=id;panel.hidden=false;panel.innerHTML=`<button class="close" type="button">&times;</button><div class="kicker">${esc(e.familyBg)}</div><h2>${esc(e.nameBg)}</h2><p class="en">${esc(e.nameEn)}</p><div class="meta"><span class="badge">${esc(e.intensity)}</span><span class="badge">${esc(e.valence)}</span>${e.core?'<span class="badge">Плутчик</span>':''}</div><p>${esc(e.description)}</p><p class="kicker" style="margin-top:16px">В тялото</p><p style="color:var(--muted)">${esc(e.body)}</p>${e.opposite?`<p class="kicker" style="margin-top:16px">Противоположна</p><p>${esc(e.opposite)}</p>`:''}${e.related&&e.related.length?`<p class="kicker" style="margin-top:16px">Сродни</p><div class="related">${e.related.map(n=>`<button type="button" data-n="${esc(n)}">${esc(n)}</button>`).join('')}</div>`:''}`;panel.querySelector('.close').onclick=()=>{panel.hidden=true;sel=null;render()};panel.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{const t=DATA.find(x=>x.nameBg===b.getAttribute('data-n'));if(t)open(t.id)});render()}
+q.oninput=render;fam.onchange=render;inten.onchange=render;document.onkeydown=e=>{if(e.key==='Escape'){panel.hidden=true;sel=null;render()}};
+render();
 </script></body></html>
