@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="bg"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Емотека</title></head>
-<body style="margin:0;background:#12110f;color:#f0ebe3;font-family:system-ui;display:grid;place-items:center;min-height:100dvh"><p>Зареждане на Емотека…</p>
+<body style="margin:0;background:#12110f;color:#f0ebe3;font-family:system-ui;display:grid;place-items:center;min-height:100dvh"><p id="s">Зареждане на Емотека…</p>
 <script src="p0.js"></script><script src="p1.js"></script><script src="p2.js"></script><script src="p3.js"></script>
 <script src="p4.js"></script><script src="p5.js"></script><script src="p6.js"></script><script src="p7.js"></script>
 <script>
 (async()=>{
 try{
 const b64=(window.__p||[]).join("");
-const bin=atob(b64);const bytes=new Uint8Array(bin.length);
-for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
-const html=await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate"))).text();
+if(!b64) throw new Error("Липсват данни (p0–p7)");
+const bin=atob(b64);
+const bytes=new Uint8Array(bin.length);
+for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+const ds=new DecompressionStream("deflate");
+const w=ds.writable.getWriter();
+w.write(bytes);
+w.close();
+const html=await new Response(ds.readable).text();
 document.open();document.write(html);document.close();
-}catch(e){document.body.textContent="Грешка: "+e}
+}catch(e){document.getElementById("s").textContent="Грешка: "+e; console.error(e);}
 })();
 </script></body></html>
