@@ -13,7 +13,7 @@ if(!b64) throw new Error("Липсват данни (p0–p7)");
 const bin=atob(b64);
 const bytes=new Uint8Array(bin.length);
 for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-const html=pako.inflate(bytes,{to:"string"});
+const html=pako.inflate(bytes,{to:"string",raw:true});
 document.open();document.write(html);document.close();
 }catch(e){document.getElementById("s").textContent="Грешка: "+e; console.error(e);}
 })();
